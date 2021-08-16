@@ -39,14 +39,18 @@ function priceIsValid(req, res, next) {
 }
 
 function bodyIdMatches(req, res, next) {
-  //If the request body specifies an id, it must match the id in the request url
   const bodyId = res.locals.newDish.id;
   const routeId = res.locals.foundDish.id;
+
+  //If the request body specifies an id, it must match the id in the request url
   if (bodyId && bodyId !== routeId)
     return next({
       status: 400,
       message: `Dish id does not match route id. Dish: ${bodyId}, Route: ${routeId}`,
     });
+
+  //Otherwise, overwrite the body id with the correct one
+  res.locals.newDish.id = routeId;
   return next();
 }
 
