@@ -16,7 +16,7 @@ function hasBodyFields(req, res, next) {
   for (const field of requiredFields)
     if (!data[field])
       return next({
-        status: 404,
+        status: 400,
         message: `Dish must include a ${field}`,
       });
 
@@ -40,7 +40,7 @@ function dishExists(req, res, next) {
   const dishId = req.params.dishId; // grab the dishId from the request parameters
   const foundDish = dishes.find((dish) => dish.id === dishId); // find a dish that matches the retrieved id
 
-  // if there is no match, throw a 404 error
+  // if there is no match, throw a 400 error
   if (!foundDish)
     return next({ status: 404, message: `dishId ${dishId} does not exist` });
   // else it does exist and we can save the foundDish to res.locals
