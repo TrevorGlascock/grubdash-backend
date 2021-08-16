@@ -66,14 +66,17 @@ function orderExists(req, res, next) {
 
 // Update requests need to ensure ids are not altered
 function bodyIdMatches(req, res, next) {
-  //If the request body specifies an id, it must match the id in the request url
   const bodyId = res.locals.newOrder.id;
   const routeId = res.locals.foundOrder.id;
+
+  //If the request body specifies an id, it must match the id in the request url
   if (bodyId && bodyId !== routeId)
     return next({
       status: 400,
       message: `Order id does not match route id. Order: ${bodyId}, Route: ${routeId}`,
     });
+  //Otherwise, overwrite the body id with the correct one
+  res.locals.newOrder.id = routeId;
   return next();
 }
 
