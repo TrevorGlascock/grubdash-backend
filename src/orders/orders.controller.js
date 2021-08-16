@@ -94,6 +94,16 @@ function validateStatus(req, res, next) {
   next();
 }
 
+function checkPending(req, res, next) {
+  // Cannot delete orders unless they are still pending
+  if (res.locals.newOrder.status !== "pending")
+    return next({
+      status: 400,
+      message: `An order cannot be deleted unless it is pending`,
+    });
+  next();
+}
+
 /********************************* L-CRUD *********************************/
 function list(req, res) {
   // List all of the order objects as JSON
@@ -139,5 +149,5 @@ module.exports = {
     validateStatus,
     update,
   ],
-  delete: [orderExists, destroy],
+  delete: [orderExists, checkPending, destroy],
 };
