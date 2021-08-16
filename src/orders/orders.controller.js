@@ -7,20 +7,17 @@ const orders = require(path.resolve("src/data/orders-data"));
 const nextId = require("../utils/nextId");
 
 /************************** Middleware Functions **************************/
-// Any request with a body needs to have valid data
+// Any request with a body needs to have valid data and the newOrder object
 function hasDataFields(req, res, next) {
   const { data } = req.body; // grab the data from request body
 
   // body.data MUST have deliverTo, mobileNumber, and dishes properties
-  const requiredFields = ["deliverTo", "mobileNumber", "dishes"];
+  const requiredFields = ["deliverTo", "mobileNumber"];
   for (const field of requiredFields)
     if (!data || !data[field])
       return next({
         status: 400,
-        message:
-          field === "dishes"
-            ? `Order must include a dish` //Message has to be dish singular, not plural like in template
-            : `Order must include a ${field}`,
+        message: `Order must include a ${field}`,
       });
 
   const { id = undefined, deliverTo, mobileNumber, status, dishes } = data;
@@ -31,9 +28,8 @@ function hasDataFields(req, res, next) {
 // Any order request with a body needs to have valid dishes array
 function validateDishes(req, res, next) {
   const { dishes } = res.locals.newOrder;
-
   // dishes MUST be an array that is not empty
-  if (!Array.isArray(dishes) || !dishes.length)
+  if (!dishes || !Array.isArray(dishes) || !dishes.length)
     return next({
       status: 400,
       message: `Order must include at least one dish`,
@@ -51,37 +47,24 @@ function validateDishes(req, res, next) {
   return next();
 }
 
-// Has a clause for updating orders, and adding new ones ensuring the status property is valid
+// if the status in body.data' is empty or undefinded then it is invalid
 function validateStatus(req, res, next) {
   // if the new status is empty or undefinded then it is invalid
-  if (!res.locals.newOrder.status)
+  console.log(res.locals.newOrder.status);
+  if (
+    res.locals.newOrder.status !== "pending" &&
+    res.locals.newOrder.status !== "preparing" &&
+    res.locals.newOrder.status !== "out-for-delivery" &&
+    res.locals.newOrder.status !== "delivered"
+  )
     return next({
       status: 400,
       message: `Order must have a status of pending, preparing, out-for-delivery, delivered`,
     });
-
-  // if the existing status is delivered, then it cannot be changed
-  if (res.locals.foundOrder.status === "delivered")
-    return next({
-      status: 400,
-      message: `A delivered order cannot be changed`,
-    });
-
-  // Otherwise, status is good to go
-  next();
+  return next();
 }
 
-function checkPending(req, res, next) {
-  // Cannot delete orders unless they are still pending
-  if (res.locals.foundOrder.status !== "pending")
-    return next({
-      status: 400,
-      message: `An order cannot be deleted unless it is pending`,
-    });
-  next();
-}
-
-// Any request made on /:orderId needs to have a valid orderId
+// Any request made on /:orderId needs to have a valid orderId and foundOrder Object
 function orderExists(req, res, next) {
   const orderId = req.params.orderId; // grab the orderId from the request parameters
   const foundOrder = orders.find((order) => order.id === orderId); // find an order that matches the retrieved id
@@ -94,7 +77,7 @@ function orderExists(req, res, next) {
   return next();
 }
 
-// Update requests need to ensure ids are not altered
+// Update requests need to ensure that if the body contains an id, it matches the path provided
 function bodyIdMatches(req, res, next) {
   const bodyId = res.locals.newOrder.id;
   const routeId = res.locals.foundOrder.id;
@@ -110,6 +93,27 @@ function bodyIdMatches(req, res, next) {
   return next();
 }
 
+// Update requests can not be made on delivered orders
+function checkDelivered(req, res, next) {
+  if (res.locals.foundOrder.status === "delivered")
+    return next({
+      status: 400,
+      message: `A delivered order cannot be changed`,
+    });
+
+  return next();
+}
+
+// Delete requests can only be made on pending orders
+function checkPending(req, res, next) {
+  if (res.locals.foundOrder.status !== "pending")
+    return next({
+      status: 400,
+      message: `An order cannot be deleted unless it is pending`,
+    });
+  next();
+}
+
 /********************************* L-CRUD *********************************/
 function list(req, res) {
   // List all of the order objects as JSON
@@ -121,7 +125,7 @@ function create(req, res) {
   res.locals.newOrder = { ...res.locals.newOrder, id: nextId() };
 
   // Adds the newOrder object to the array of orders, and sends 201 response with the new object as JSON
-  dishes.push(res.locals.newOrder);
+  orders.push(res.locals.newOrder);
   res.status(201).json({ data: res.locals.newOrder });
 }
 
@@ -145,7 +149,7 @@ function destroy(req, res) {
 
 module.exports = {
   list: [list],
-  create: [hasDataFields, validateDishes, validateStatus, create],
+  create: [hasDataFields, validateDishes, create],
   read: [orderExists, read],
   update: [
     orderExists,
@@ -153,6 +157,7 @@ module.exports = {
     validateDishes,
     bodyIdMatches,
     validateStatus,
+    checkDelivered,
     update,
   ],
   delete: [orderExists, checkPending, destroy],
