@@ -75,6 +75,25 @@ function bodyIdMatches(req, res, next) {
   return next();
 }
 
+function validateStatus(req, res, next) {
+  // if the new status is empty or undefinded then it is invalid
+  if (!res.locals.newOrder.status)
+    return next({
+      status: 400,
+      message: `Order must have a status of pending, preparing, out-for-delivery, delivered`,
+    });
+
+  // if the existing status is delivered, then it cannot be changed
+  if (res.locals.foundOrder.status === "delivered")
+    return next({
+      status: 400,
+      message: `A delivered order cannot be changed`,
+    });
+
+  // Otherwise, status is good to go
+  next();
+}
+
 /********************************* L-CRUD *********************************/
 function list(req, res) {
   // List all of the order objects as JSON
@@ -112,6 +131,13 @@ module.exports = {
   list: [list],
   create: [hasDataFields, validateDishes, create],
   read: [orderExists, read],
-  update: [orderExists, hasDataFields, validateDishes, bodyIdMatches, update],
+  update: [
+    orderExists,
+    hasDataFields,
+    validateDishes,
+    bodyIdMatches,
+    validateStatus,
+    update,
+  ],
   delete: [orderExists, destroy],
 };
