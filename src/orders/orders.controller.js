@@ -51,35 +51,6 @@ function validateDishes(req, res, next) {
   return next();
 }
 
-// Any request made on /:orderId needs to have a valid orderId
-function orderExists(req, res, next) {
-  const orderId = req.params.orderId; // grab the orderId from the request parameters
-  const foundOrder = orders.find((order) => order.id === orderId); // find an order that matches the retrieved id
-
-  // if there is no match, throw a 400 error
-  if (!foundOrder)
-    return next({ status: 404, message: `orderId ${orderId} does not exist` });
-  // else it does exist and we can save the foundOrder to res.locals
-  res.locals.foundOrder = foundOrder;
-  return next();
-}
-
-// Update requests need to ensure ids are not altered
-function bodyIdMatches(req, res, next) {
-  const bodyId = res.locals.newOrder.id;
-  const routeId = res.locals.foundOrder.id;
-
-  //If the request body specifies an id, it must match the id in the request url
-  if (bodyId && bodyId !== routeId)
-    return next({
-      status: 400,
-      message: `Order id does not match route id. Order: ${bodyId}, Route: ${routeId}`,
-    });
-  //Otherwise, overwrite the body id with the correct one
-  res.locals.newOrder.id = routeId;
-  return next();
-}
-
 // Has a clause for updating orders, and adding new ones ensuring the status property is valid
 function validateStatus(req, res, next) {
   // if the new status is empty or undefinded then it is invalid
@@ -108,6 +79,35 @@ function checkPending(req, res, next) {
       message: `An order cannot be deleted unless it is pending`,
     });
   next();
+}
+
+// Any request made on /:orderId needs to have a valid orderId
+function orderExists(req, res, next) {
+  const orderId = req.params.orderId; // grab the orderId from the request parameters
+  const foundOrder = orders.find((order) => order.id === orderId); // find an order that matches the retrieved id
+
+  // if there is no match, throw a 400 error
+  if (!foundOrder)
+    return next({ status: 404, message: `orderId ${orderId} does not exist` });
+  // else it does exist and we can save the foundOrder to res.locals
+  res.locals.foundOrder = foundOrder;
+  return next();
+}
+
+// Update requests need to ensure ids are not altered
+function bodyIdMatches(req, res, next) {
+  const bodyId = res.locals.newOrder.id;
+  const routeId = res.locals.foundOrder.id;
+
+  //If the request body specifies an id, it must match the id in the request url
+  if (bodyId && bodyId !== routeId)
+    return next({
+      status: 400,
+      message: `Order id does not match route id. Order: ${bodyId}, Route: ${routeId}`,
+    });
+  //Otherwise, overwrite the body id with the correct one
+  res.locals.newOrder.id = routeId;
+  return next();
 }
 
 /********************************* L-CRUD *********************************/
