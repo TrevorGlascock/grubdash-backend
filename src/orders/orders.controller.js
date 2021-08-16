@@ -18,9 +18,9 @@ function hasDataFields(req, res, next) {
       return next({
         status: 400,
         message:
-          field === dishes
-            ? `Order must include a ${field}`
-            : `Order must include a dish`, //Message has to be dish singular, not plural like in template
+          field === "dishes"
+            ? `Order must include a dish` //Message has to be dish singular, not plural like in template
+            : `Order must include a ${field}`,
       });
 
   const { id = undefined, deliverTo, mobileNumber, status, dishes } = data;
