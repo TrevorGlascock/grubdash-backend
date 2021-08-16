@@ -23,14 +23,14 @@ function hasDataFields(req, res, next) {
             : `Order must include a dish`, //Message has to be dish singular, not plural like in template
       });
 
-  const { deliverTo, mobileNumber, status, dishes } = data;
-  res.locals.newDish = { deliverTo, mobileNumber, status, dishes };
+  const { id = undefined, deliverTo, mobileNumber, status, dishes } = data;
+  res.locals.newOrder = { id, deliverTo, mobileNumber, status, dishes };
   return next();
 }
 
 // Any order request with a body needs to have valid dishes array
 function validateDishes(req, res, next) {
-  const { dishes } = res.locals.newDish;
+  const { dishes } = res.locals.newOrder;
 
   // dishes MUST be an array that is not empty
   if (!Array.isArray(dishes) || !dishes.length)
@@ -115,7 +115,7 @@ function list(req, res) {
 
 function create(req, res) {
   // Adds a unique ID to the new order object
-  res.locals.newOrder = { id: nextId(), ...res.locals.newOrder };
+  res.locals.newOrder = { ...res.locals.newOrder, id: nextId() };
 
   // Adds the newOrder object to the array of orders, and sends 201 response with the new object as JSON
   dishes.push(res.locals.newOrder);
@@ -123,7 +123,7 @@ function create(req, res) {
 }
 
 function read(req, res) {
-  // Read the found dish object as JSON
+  // Read the found Order object as JSON
   res.json({ data: res.locals.foundOrder });
 }
 
