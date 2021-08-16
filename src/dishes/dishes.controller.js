@@ -21,8 +21,9 @@ function hasDataFields(req, res, next) {
       });
 
   // Save the new object to res.locals
-  const { data: { name, description, price, image_url } = {} } = req.body;
-  res.locals.newDish = { name, description, price, image_url };
+  const { data: { id = undefined, name, description, price, image_url } = {} } =
+    req.body;
+  res.locals.newDish = { id, name, description, price, image_url };
   return next();
 }
 
@@ -36,13 +37,26 @@ function priceIsValid(req, res, next) {
   return next();
 }
 
+function bodyIdMatches(req, res, next) {
+  //If the request body specifies an id, it must match the id in the request url
+  const bodyId = res.locals.newDish.id;
+  const routeId = res.locals.foundDish.id;
+  if (bodyId && bodyId !== routeId)
+    return next({
+      status: 400,
+      message: `Dish id does not match route id. Dish: ${bodyId}, Route: ${routeId}`,
+    });
+  return next();
+}
+
 function dishExists(req, res, next) {
   const dishId = req.params.dishId; // grab the dishId from the request parameters
   const foundDish = dishes.find((dish) => dish.id === dishId); // find a dish that matches the retrieved id
 
-  // if there is no match, throw a 400 error
+  // if there is no match, throw a 404 error
   if (!foundDish)
-    return next({ status: 404, message: `dishId ${dishId} does not exist` });
+    return next({ status: 404, message: `Dish does not exist: ${dishId}.` });
+
   // else it does exist and we can save the foundDish to res.locals
   res.locals.foundDish = foundDish;
   return next();
@@ -79,5 +93,5 @@ module.exports = {
   list: [list],
   create: [hasDataFields, priceIsValid, create],
   read: [dishExists, read],
-  update: [dishExists, hasDataFields, priceIsValid, update],
+  update: [dishExists, hasDataFields, bodyIdMatches, priceIsValid, update],
 };
