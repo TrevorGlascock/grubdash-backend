@@ -70,7 +70,7 @@ function list(req, res) {
 
 function create(req, res) {
   // Adds a unique ID to the new dish object
-  res.locals.newDish = { id: nextId(), ...res.locals.newDish };
+  res.locals.newDish = { ...res.locals.newDish, id: nextId() };
 
   // Adds the newDish object to the array of dishes, and sends 201 response with the new object as JSON
   dishes.push(res.locals.newDish);
