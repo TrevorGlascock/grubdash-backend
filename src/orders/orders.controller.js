@@ -11,10 +11,10 @@ const nextId = require("../utils/nextId");
 function hasDataFields(req, res, next) {
   const { data } = req.body; // grab the data from request body
 
-  // body.data MUST have deliverTo, mobileNumber, status, and dishes properties
-  const requiredFields = ["deliverTo", "mobileNumber", "status", "dishes"];
+  // body.data MUST have deliverTo, mobileNumber, and dishes properties
+  const requiredFields = ["deliverTo", "mobileNumber", "dishes"];
   for (const field of requiredFields)
-    if (!data[field])
+    if (!data || !data[field])
       return next({
         status: 400,
         message:
@@ -51,6 +51,7 @@ function validateDishes(req, res, next) {
   return next();
 }
 
+// Any request made on /:orderId needs to have a valid orderId
 function orderExists(req, res, next) {
   const orderId = req.params.orderId; // grab the orderId from the request parameters
   const foundOrder = orders.find((order) => order.id === orderId); // find an order that matches the retrieved id
@@ -63,6 +64,7 @@ function orderExists(req, res, next) {
   return next();
 }
 
+// Update requests need to ensure ids are not altered
 function bodyIdMatches(req, res, next) {
   //If the request body specifies an id, it must match the id in the request url
   const bodyId = res.locals.newOrder.id;
@@ -75,6 +77,7 @@ function bodyIdMatches(req, res, next) {
   return next();
 }
 
+// Has a clause for updating orders, and adding new ones ensuring the status property is valid
 function validateStatus(req, res, next) {
   // if the new status is empty or undefinded then it is invalid
   if (!res.locals.newOrder.status)
@@ -96,7 +99,7 @@ function validateStatus(req, res, next) {
 
 function checkPending(req, res, next) {
   // Cannot delete orders unless they are still pending
-  if (res.locals.newOrder.status !== "pending")
+  if (res.locals.foundOrder.status !== "pending")
     return next({
       status: 400,
       message: `An order cannot be deleted unless it is pending`,
@@ -139,7 +142,7 @@ function destroy(req, res) {
 
 module.exports = {
   list: [list],
-  create: [hasDataFields, validateDishes, create],
+  create: [hasDataFields, validateDishes, validateStatus, create],
   read: [orderExists, read],
   update: [
     orderExists,
