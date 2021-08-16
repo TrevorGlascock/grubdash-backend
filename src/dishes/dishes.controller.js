@@ -8,7 +8,7 @@ const dishes = require(path.resolve("src/data/dishes-data"));
 const nextId = require("../utils/nextId");
 
 /************************** Middleware Functions **************************/
-function hasBodyFields(req, res, next) {
+function hasDataFields(req, res, next) {
   const data = req.body.data; // grab the data from request body
 
   // body.data MUST have name, description, price, and image_url properties
@@ -77,7 +77,7 @@ function update(req, res) {
 
 module.exports = {
   list: [list],
-  create: [hasBodyFields, priceIsValid, create],
+  create: [hasDataFields, priceIsValid, create],
   read: [dishExists, read],
-  update: [dishExists, hasBodyFields, priceIsValid, update],
+  update: [dishExists, hasDataFields, priceIsValid, update],
 };
