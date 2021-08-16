@@ -56,11 +56,11 @@ function list(req, res) {
 
 function create(req, res) {
   // Adds a unique ID to the new dish object
-  const newDish = { id: nextId(), ...req.locals.newDish };
+  res.locals.newDish = { id: nextId(), ...req.locals.newDish };
 
   // Adds the newDish object to the array of dishes, and sends 201 response with the new object as JSON
-  dishes.push(newDish);
-  res.status(201).json({ data: newDish });
+  dishes.push(res.locals.newDish);
+  res.status(201).json({ data: res.locals.newDish });
 }
 
 function read(req, res) {
@@ -71,6 +71,8 @@ function read(req, res) {
 function update(req, res) {
   // Overwrite the found dish's data with the newDish's data
   res.locals.foundDish = { ...res.locals.foundDish, ...res.locals.newDish };
+  // return the found object as json
+  res.json({ data: res.locals.foundDish });
 }
 
 module.exports = {
