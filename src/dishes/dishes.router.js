@@ -11,7 +11,7 @@ router
 router
   .route("/")
   .get(controller.list) // List all dishes
-  .post(controller.create) // Create one specific dish
+  .post(controller.create) // Create a new dish
   .all(methodNotAllowed); // All else not allowed
 
 module.exports = router;
