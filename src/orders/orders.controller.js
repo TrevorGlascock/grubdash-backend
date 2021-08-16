@@ -49,13 +49,9 @@ function validateDishes(req, res, next) {
 
 // if the status in body.data' is empty or undefinded then it is invalid
 function validateStatus(req, res, next) {
-  // if the new status is empty or undefinded then it is invalid
-  if (
-    res.locals.newOrder.status !== "pending" &&
-    res.locals.newOrder.status !== "preparing" &&
-    res.locals.newOrder.status !== "out-for-delivery" &&
-    res.locals.newOrder.status !== "delivered"
-  )
+  // if the new status is not valid, throw 400 error
+  const validCases = ["pending", "preparing", "out-for-delivery", "delivered"];
+  if (!validCases.includes(res.locals.newOrder.status))
     return next({
       status: 400,
       message: `Order must have a status of pending, preparing, out-for-delivery, delivered`,
