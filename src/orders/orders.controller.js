@@ -50,7 +50,6 @@ function validateDishes(req, res, next) {
 // if the status in body.data' is empty or undefinded then it is invalid
 function validateStatus(req, res, next) {
   // if the new status is empty or undefinded then it is invalid
-  console.log(res.locals.newOrder.status);
   if (
     res.locals.newOrder.status !== "pending" &&
     res.locals.newOrder.status !== "preparing" &&
