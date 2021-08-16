@@ -29,7 +29,8 @@ function hasDataFields(req, res, next) {
 
 function priceIsValid(req, res, next) {
   // Price cannot be less than 0
-  if (res.locals.newDish.price < 0)
+  const { price } = res.locals.newDish;
+  if (!Number.isInteger(price) || price < 0)
     return next({
       status: 400,
       message: `Dish must have a price that is an integer greater than 0`,
