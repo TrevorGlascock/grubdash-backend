@@ -11,7 +11,7 @@ const nextId = require("../utils/nextId");
 function hasDataFields(req, res, next) {
   const data = req.body.data; // grab the data from request body
 
-  // body.data MUST have name, description, price, and image_url properties
+  // body.data MUST have name, description and image_url properties
   const requiredFields = ["name", "description", "image_url"];
   for (const field of requiredFields)
     if (!data[field])
