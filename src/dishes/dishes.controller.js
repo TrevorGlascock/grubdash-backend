@@ -12,7 +12,7 @@ function hasDataFields(req, res, next) {
   const data = req.body.data; // grab the data from request body
 
   // body.data MUST have name, description, price, and image_url properties
-  const requiredFields = ["name", "description", "price", "image_url"];
+  const requiredFields = ["name", "description", "image_url"];
   for (const field of requiredFields)
     if (!data[field])
       return next({
@@ -30,7 +30,7 @@ function hasDataFields(req, res, next) {
 function priceIsValid(req, res, next) {
   // Price cannot be less than 0
   const { price } = res.locals.newDish;
-  if (!Number.isInteger(price) || price < 0)
+  if (!price || !Number.isInteger(price) || price < 0)
     return next({
       status: 400,
       message: `Dish must have a price that is an integer greater than 0`,
